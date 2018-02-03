@@ -7,16 +7,28 @@ const rails = Array.from({ length: 20 }).map((_, i) => ({
   y: 40 + i * 20 + 40 * Math.random(),
 }))
 
-const REBOUND_FACTOR = 1.7
-const AIR_FRICTION = 0.05
+const crayon = []
+const crayon2 = []
+
+const REBOUND_FACTOR = 1.9
+const AIR_FRICTION_PENDULUM = 0.1
+const AIR_FRICTION_CART = 0.04
 
 // rails = [{ x: 50, y: 50 }, { x: 500, y: 200 }]
 
-let cart_x = 80
+let cart_x = 0
 let cart_y = 10
 
-let cart_vx = 0
+let cart_vx = 10
 let cart_vy = 0
+
+let pendulum_x = 0
+let pendulum_y = 60
+
+let pendulum_vx = 0
+let pendulum_vy = 0
+
+//
 
 let mouse_x = 0
 let mouse_y = 0
@@ -27,7 +39,9 @@ window.onmousemove = e => {
 }
 
 const loop = () => {
-  // cart physic
+  /////////
+  ///////// cart physic
+  /////////
 
   const g = 1
   let a_x = 0
@@ -69,8 +83,6 @@ const loop = () => {
         cart_y += (10 - d) * ny
       }
 
-      debugger
-
       if (u < 0) {
         a_x -= nx * u * REBOUND_FACTOR
         a_y -= ny * u * REBOUND_FACTOR
@@ -81,12 +93,42 @@ const loop = () => {
   }
 
   // solid friction
-  a_x -= cart_vx * AIR_FRICTION
-  a_y -= cart_vy * AIR_FRICTION
+  a_x -= cart_vx * AIR_FRICTION_CART
+  a_y -= cart_vy * AIR_FRICTION_CART
 
   // step
   cart_x += cart_vx += a_x
   cart_y += cart_vy += a_y
+
+  /////////
+  ///////// pendulum physic
+  /////////
+
+  a_x = 0
+  a_y = g
+
+  const pcx = cart_x - pendulum_x
+  const pcy = cart_y - pendulum_y
+
+  const pcl = Math.sqrt(pcx * pcx + pcy * pcy)
+
+  if (pcl > 80) {
+    const d = pcl - 80
+
+    a_x += d * pcx / pcl
+    a_y += d * pcy / pcl
+  }
+
+  // solid friction
+  a_x -= pendulum_vx * AIR_FRICTION_PENDULUM
+  a_y -= pendulum_vy * AIR_FRICTION_PENDULUM
+
+  // step
+  pendulum_x += pendulum_vx += a_x
+  pendulum_y += pendulum_vy += a_y
+
+  crayon.push({ x: cart_x, y: cart_y })
+  crayon2.push({ x: pendulum_x, y: pendulum_y })
 
   /////////
   ///////// draw
@@ -96,13 +138,45 @@ const loop = () => {
 
   // draw rails
   for (let i = rails.length - 1; i--; ) {
+    ctx.strokeStyle = '#000'
     ctx.beginPath()
     ctx.moveTo(rails[i].x, rails[i].y)
     ctx.lineTo(rails[i + 1].x, rails[i + 1].y)
     ctx.stroke()
   }
 
+  // draw crayon
+  // for (let i = 1; i < crayon.length; i++) {
+  //   ctx.strokeStyle = '#a00'
+  //   ctx.beginPath()
+  //   ctx.moveTo(crayon[i].x, crayon[i].y)
+  //   ctx.lineTo(crayon[i - 1].x, crayon[i - 1].y)
+  //   ctx.stroke()
+  // }
+
+  // draw crayon2
+  for (let i = 1; i < crayon2.length; i++) {
+    ctx.strokeStyle = '#a90'
+    ctx.beginPath()
+    ctx.moveTo(crayon2[i].x, crayon2[i].y)
+    ctx.lineTo(crayon2[i - 1].x, crayon2[i - 1].y)
+    ctx.stroke()
+  }
+
+  // draw pendulum
+  ctx.strokeStyle = '#888'
+  ctx.beginPath()
+  ctx.moveTo(cart_x, cart_y)
+  ctx.lineTo(pendulum_x, pendulum_y)
+  ctx.stroke()
+
+  ctx.fillStyle = '#aa0'
+  ctx.beginPath()
+  ctx.arc(pendulum_x, pendulum_y, 5, 0, Math.PI * 2)
+  ctx.fill()
+
   // draw cart
+  ctx.fillStyle = '#333'
   ctx.beginPath()
   ctx.arc(cart_x, cart_y, 5, 0, Math.PI * 2)
   ctx.fill()
