@@ -16,9 +16,9 @@ navigator.getUserMedia =
   navigator.mozGetUserMedia ||
   navigator.msGetUserMedia
 
-window.a = document.getElementById('canvas')
-window.a.width = window.innerWidth - 3
-window.a.height = window.innerHeight - 3
+const canvas = (window.canvas = window.a = document.getElementById('canvas'))
+canvas.width = window.innerWidth - 3
+canvas.height = window.innerHeight - 3
 window.b = document.body
-window.c = window.a.getContext('2d')
+window.ctx = window.c = canvas.getContext('2d')
 window.d = document

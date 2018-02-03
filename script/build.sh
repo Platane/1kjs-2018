@@ -4,6 +4,8 @@ set -e
 
 rm -rdf dist/
 mkdir dist
+cp src/index.html dist
+cp src/shim.js dist
 
 echo "source size       `stat -c%s src/index.js`"
 
@@ -18,3 +20,5 @@ cat dist/tmp.js | jscrush 1> dist/index.js 2> /dev/null
 echo "crushed size      `stat -c%s dist/index.js`"
 
 # rm dist/tmp.js
+
+echo file://$PWD/dist/index.html
