@@ -1,0 +1,53 @@
+{
+  "env": {
+    "minify": {
+      "presets": [
+        [
+          "babili",
+          {
+            "keepClassName": false,
+            "keepFnName": false,
+            "mangle": {
+              "blacklist": { "foo": true, "bar": true },
+              "topLevel": true
+            },
+            "unsafe": {
+              "typeConstructors": true,
+              "flipComparisons": true,
+              "guards": true
+            },
+            "properties": {
+              "memberExpressions": true,
+              "propertyLiterals": true
+            },
+            "replace": false,
+            "builtins": false
+          }
+        ]
+      ],
+
+      "plugins": [
+        [
+          "minify-replace",
+          {
+            "replacements": [
+              {
+                "identifierName": "VALUE",
+                "replacement": {
+                  "type": "numericLiteral",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        [
+          "replace-identifiers",
+          {
+            "longValue": "z"
+          }
+        ]
+      ]
+    }
+  }
+}
