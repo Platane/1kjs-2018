@@ -4,22 +4,23 @@
 
 const rails = Array.from({ length: 20 }).map((_, i) => ({
   x: i * 40 + 20 * Math.random(),
-  y: 40 + i * 20 + 40 * Math.random(),
+  y: 40 + 3 * 20 + 40 * Math.random(),
 }))
 
 const crayon = []
 const crayon2 = []
 
-const REBOUND_FACTOR = 1.9
-const AIR_FRICTION_PENDULUM = 0.1
+const REBOUND_FACTOR = 1.2
+const AIR_FRICTION_PENDULUM = 0.04
 const AIR_FRICTION_CART = 0.04
+const ENGINE_POWER = 0.8
 
 // rails = [{ x: 50, y: 50 }, { x: 500, y: 200 }]
 
-let cart_x = 0
-let cart_y = 10
+let cart_x = 10
+let cart_y = 50
 
-let cart_vx = 10
+let cart_vx = 4
 let cart_vy = 0
 
 let pendulum_x = 0
@@ -75,7 +76,7 @@ const loop = () => {
     const g = acx * abx / abl + acy * aby / abl
 
     // inside the rail
-    if (g > 0 && g < abl && d >= -6 && d < 12) {
+    if (g > 0 && g < abl && d >= -6 && d < 13) {
       const u = nx * cart_vx + ny * cart_vy
 
       if (u < 0 || d < 0) {
@@ -87,6 +88,10 @@ const loop = () => {
         a_x -= nx * u * REBOUND_FACTOR
         a_y -= ny * u * REBOUND_FACTOR
       }
+
+      // wheel friction
+      a_x -= ny * ENGINE_POWER
+      a_y += nx * ENGINE_POWER
 
       // const r = console.log(d)
     }
@@ -138,7 +143,7 @@ const loop = () => {
 
   // draw rails
   for (let i = rails.length - 1; i--; ) {
-    ctx.strokeStyle = '#000'
+    ctx.strokeStyle = '#bbb'
     ctx.beginPath()
     ctx.moveTo(rails[i].x, rails[i].y)
     ctx.lineTo(rails[i + 1].x, rails[i + 1].y)
