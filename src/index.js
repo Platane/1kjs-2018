@@ -2,11 +2,6 @@
 ///
 ///
 
-let rails = Array.from({ length: 50 }).map((_, i) => ({
-  x: i * 40 + 20 * Math.random(),
-  y: 40 + 3 * 20 + 40 * Math.random(),
-}))
-
 const REBOUND_FACTOR = 1.2
 const AIR_FRICTION_PENDULUM = 0.04
 const AIR_FRICTION_CART = 0.04
@@ -139,8 +134,6 @@ const compute = rails => {
   }
 }
 
-compute(rails)
-
 const trace = r => {
   ctx.beginPath()
   ctx.moveTo(r[0].x, r[0].y)
@@ -153,7 +146,7 @@ const trace = r => {
 const diffTrace = (a, b) => {
   let err = 0
   let u = 0
-  let v = 0
+  let v = 200
 
   while (v < 600) {
     u = v
@@ -185,124 +178,116 @@ const diffTrace = (a, b) => {
   return err
 }
 
-const curve = Array.from({ length: 800 }).map((_, x) => ({ x, y: 100 }))
+const curve = Array.from({ length: 800 }).map((_, x) => ({
+  x,
+  y: 100 + (x - 360) * (x - 360) * 0.001,
+}))
+
+let best_rails = [{ x: 10, y: curve[0].y }, { x: 650, y: curve[0].y }]
 
 const wait = (delay = 0) => new Promise(resolve => setTimeout(resolve, delay))
+
 const run = async () => {
-  let best = 9999999999999999
+  compute(best_rails)
+  let best_error = diffTrace(pendulumTrace, curve)
+
   while (true) {
     for (let k = 50; k--; ) {
-      r = Array.from({ length: 50 }).map((_, i) => ({
-        x: i * 40 + 20 * Math.random(),
-        y: 300 * Math.random(),
-      }))
+      // mutation
+      let mutated_rails = best_rails.slice()
 
-      compute(r)
+      switch (0 | (Math.random() * 30)) {
+        case 0: {
+          const k = 0 | (Math.random() * (mutated_rails.length - 1))
+
+          mutated_rails.splice(k + 1, 0, {
+            x: (mutated_rails[k].x + mutated_rails[k + 1].x) / 2,
+            y:
+              (mutated_rails[k].y + mutated_rails[k + 1].y) / 2 +
+              (Math.random() - 0.5) * 100,
+          })
+        }
+        default: {
+          const k = 0 | (Math.random() * mutated_rails.length)
+
+          mutated_rails[k] = {
+            x: mutated_rails[k].x + (Math.random() - 0.5) * 10,
+            y: mutated_rails[k].y + (Math.random() - 0.5) * 10,
+          }
+        }
+      }
+
+      compute(mutated_rails)
 
       const b = diffTrace(pendulumTrace, curve)
 
-      if (b < best) {
-        best = b
-        rails = r
-
-        ctx.clearRect(0, 0, 999, 999)
-
-        ctx.strokeStyle = "#ae18"
-        trace(curve)
-
-        ctx.strokeStyle = "#aaa"
-        trace(rails)
-
-        ctx.strokeStyle = "#a90"
-        trace(pendulumTrace)
-
-        ctx.strokeStyle = "#a00"
-        trace(cartTrace)
-
-        await wait(500)
+      if (b < best_error) {
+        best_error = b
+        best_rails = mutated_rails
       }
     }
-    await wait(100)
+    await wait(0)
   }
 }
 
 run()
 
-// compute(rails)
-//
-// ctx.strokeStyle = "#ae18"
-// trace(curve)
-//
-// ctx.strokeStyle = "#aaa"
-// trace(rails)
-//
-// ctx.strokeStyle = "#a90"
-// trace(pendulumTrace)
-//
-// ctx.strokeStyle = "#a00"
-// trace(cartTrace)
+let k = 1
+let dd_rails
+let d_rails = []
+let d_pendulumTrace = []
+let d_cartTrace = []
 
-// getCurve().then(x => {
-//   ctx.clearRect(0, 0, 9999, 9999)
-//   ctx.strokeStyle = "#a00"
-//   trace(x)
-// })
+const loop = () => {
+  if (k + 1 >= d_cartTrace.length) {
+    if (dd_rails != best_rails) {
+      compute(best_rails)
 
-//
-// const loop = () => {
-//   /////////
-//   ///////// draw
-//   /////////
-//
-//   ctx.clearRect(0, 0, 9999, 9999)
-//
-//   // draw rails
-//   for (let i = rails.length - 1; i--; ) {
-//     ctx.strokeStyle = '#bbb'
-//     ctx.beginPath()
-//     ctx.moveTo(rails[i].x, rails[i].y)
-//     ctx.lineTo(rails[i + 1].x, rails[i + 1].y)
-//     ctx.stroke()
-//   }
-//
-//   // draw crayon
-//   // for (let i = 1; i < crayon.length; i++) {
-//   //   ctx.strokeStyle = '#a00'
-//   //   ctx.beginPath()
-//   //   ctx.moveTo(crayon[i].x, crayon[i].y)
-//   //   ctx.lineTo(crayon[i - 1].x, crayon[i - 1].y)
-//   //   ctx.stroke()
-//   // }
-//
-//   // draw crayon2
-//   for (let i = 1; i < crayon2.length; i++) {
-//     ctx.strokeStyle = '#a90'
-//     ctx.beginPath()
-//     ctx.moveTo(crayon2[i].x, crayon2[i].y)
-//     ctx.lineTo(crayon2[i - 1].x, crayon2[i - 1].y)
-//     ctx.stroke()
-//   }
-//
-//   // draw pendulum
-//   ctx.strokeStyle = '#888'
-//   ctx.beginPath()
-//   ctx.moveTo(cart_x, cart_y)
-//   ctx.lineTo(pendulum_x, pendulum_y)
-//   ctx.stroke()
-//
-//   ctx.fillStyle = '#aa0'
-//   ctx.beginPath()
-//   ctx.arc(pendulum_x, pendulum_y, 5, 0, Math.PI * 2)
-//   ctx.fill()
-//
-//   // draw cart
-//   ctx.fillStyle = '#333'
-//   ctx.beginPath()
-//   ctx.arc(cart_x, cart_y, 5, 0, Math.PI * 2)
-//   ctx.fill()
-//
-//   // loop
-//   requestAnimationFrame(loop)
-// }
-//
-// loop()
+      dd_rails = best_rails
+      d_rails = best_rails.map(({ x, y }) => ({ x, y }))
+      d_cartTrace = cartTrace.map(({ x, y }) => ({ x, y }))
+      d_pendulumTrace = pendulumTrace.map(({ x, y }) => ({ x, y }))
+
+      k = 1
+    }
+  } else k++
+
+  ctx.clearRect(0, 0, 9999, 9999)
+
+  ctx.strokeStyle = "#ae18"
+  trace(curve)
+
+  ctx.clearRect(0, 0, 200, 999)
+  ctx.clearRect(0, 600, 9999, 999)
+
+  ctx.strokeStyle = "#aaa"
+  trace(d_rails.slice(0, k))
+
+  ctx.strokeStyle = "#a90"
+  trace(d_pendulumTrace.slice(0, k))
+
+  ctx.strokeStyle = "#a00"
+  trace(d_cartTrace.slice(0, k))
+
+  // draw pendulum
+  ctx.strokeStyle = "#888"
+  ctx.beginPath()
+  ctx.moveTo(d_cartTrace[k].x, d_cartTrace[k].y)
+  ctx.lineTo(d_pendulumTrace[k].x, d_pendulumTrace[k].y)
+  ctx.stroke()
+
+  ctx.fillStyle = "#aa0"
+  ctx.beginPath()
+  ctx.arc(d_pendulumTrace[k].x, d_pendulumTrace[k].y, 5, 0, Math.PI * 2)
+  ctx.fill()
+
+  ctx.fillStyle = "#333"
+  ctx.beginPath()
+  ctx.arc(d_cartTrace[k].x, d_cartTrace[k].y, 5, 0, Math.PI * 2)
+  ctx.fill()
+
+  // loop
+  requestAnimationFrame(loop)
+}
+
+loop()
